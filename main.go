@@ -24,7 +24,7 @@ type PlayerPPPlusData struct {
 	total     string
 }
 
-func getPPPlusDoucment(username string) *goquery.Document {
+func getPPPlusDocument(username string) *goquery.Document {
 	res, err := http.Get("https://syrin.me/pp+/u/" + username)
 	if err != nil {
 		fmt.Print(err)
@@ -74,7 +74,7 @@ func readUserNameList() []string {
 }
 
 func _getPlayerPPPlusDataWithChannel(userName string, channel chan *PlayerPPPlusData) {
-	doc := getPPPlusDoucment(userName)
+	doc := getPPPlusDocument(userName)
 	var aim_jump = getValueFromSelector(doc, "body > div > div:nth-child(8) > div:nth-child(2) > div.col-sm-7 > div > div > div.col-sm-7 > div > table > tbody > tr:nth-child(2) > td:nth-child(2)")
 	var aim_flow = getValueFromSelector(doc, "body > div > div:nth-child(8) > div:nth-child(2) > div.col-sm-7 > div > div > div.col-sm-7 > div > table > tbody > tr:nth-child(3) > td:nth-child(2)")
 	var precision = getValueFromSelector(doc, "body > div > div:nth-child(8) > div:nth-child(2) > div.col-sm-7 > div > div > div.col-sm-7 > div > table > tbody > tr:nth-child(4) > td:nth-child(2)")
@@ -88,7 +88,7 @@ func _getPlayerPPPlusDataWithChannel(userName string, channel chan *PlayerPPPlus
 }
 
 func getPlayerPPPlusData(userName string) *PlayerPPPlusData {
-	doc := getPPPlusDoucment(userName)
+	doc := getPPPlusDocument(userName)
 	var aim_jump = getValueFromSelector(doc, "body > div > div:nth-child(8) > div:nth-child(2) > div.col-sm-7 > div > div > div.col-sm-7 > div > table > tbody > tr:nth-child(2) > td:nth-child(2)")
 	var aim_flow = getValueFromSelector(doc, "body > div > div:nth-child(8) > div:nth-child(2) > div.col-sm-7 > div > div > div.col-sm-7 > div > table > tbody > tr:nth-child(3) > td:nth-child(2)")
 	var precision = getValueFromSelector(doc, "body > div > div:nth-child(8) > div:nth-child(2) > div.col-sm-7 > div > div > div.col-sm-7 > div > table > tbody > tr:nth-child(4) > td:nth-child(2)")
@@ -140,7 +140,7 @@ func writeResultToFile(playDataList []*PlayerPPPlusData) {
 	fmt.Println()
 	fmt.Println("Writing Data To File " + filename + "...")
 
-	file, err := os.Create("./" + filename)
+	file, err := os.Create("./" + filename + ".csv")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -148,17 +148,19 @@ func writeResultToFile(playDataList []*PlayerPPPlusData) {
 	defer file.Close()
 
 	writer := bufio.NewWriter(file)
+	writer.WriteString("Player,pp,Total,AimJump,AimFlow,Precision,Speed,Stamina,Accuracy\n")
+
 	for i := 0; i < len(playDataList); i++ {
 
-		writer.WriteString("Player: " + playDataList[i].username + "\n")
-		writer.WriteString("pp: " + playDataList[i].pp + "\n")
-		writer.WriteString("Total: " + playDataList[i].total + "\n")
-		writer.WriteString("Aim Jump: " + playDataList[i].aim_jump + "\n")
-		writer.WriteString("Aim Flow: " + playDataList[i].aim_flow + "\n")
-		writer.WriteString("Precision: " + playDataList[i].precision + "\n")
-		writer.WriteString("Speed: " + playDataList[i].speed + "\n")
-		writer.WriteString("Stanima: " + playDataList[i].stamina + "\n")
-		writer.WriteString("Accuracy: " + playDataList[i].accuracy + "\n\n")
+		writer.WriteString(playDataList[i].username + ",")
+		writer.WriteString(playDataList[i].pp + ",")
+		writer.WriteString(playDataList[i].total + ",")
+		writer.WriteString(playDataList[i].aim_jump + ",")
+		writer.WriteString(playDataList[i].aim_flow + ",")
+		writer.WriteString(playDataList[i].precision + ",")
+		writer.WriteString(playDataList[i].speed + ",")
+		writer.WriteString(playDataList[i].stamina + ",")
+		writer.WriteString(playDataList[i].accuracy + "\n")
 	}
 
 	writer.Flush()
@@ -183,4 +185,8 @@ func main() {
 
 	fmt.Println()
 	fmt.Println(fmt.Sprint(endTime-startTime) + "ms cost")
+
+	fmt.Println("Press any key to exit...")
+	b := make([]byte, 1)
+	os.Stdin.Read(b)
 }
